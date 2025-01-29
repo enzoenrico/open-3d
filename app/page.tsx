@@ -1,23 +1,21 @@
+"use client"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { HoverCard, HoverCardContent } from '@/components/ui/hover-card'
 import { HoverCardTrigger } from '@radix-ui/react-hover-card'
 import Image from 'next/image'
+import { motion, AnimatePresence } from "framer-motion"
 import Link from 'next/link'
 
 export default function Home() {
 	return (
 		<div className='w-screen h-screen flex flex-col justify-between'>
 			<div className=' h-5/6 flex flex-col items-center justify-center gap-4'>
-				{/* penguim hover!!! */}
-				{/* <HoverCard>
-                    <HoverCardTrigger asChild> */}
 				<Image
 					src={'/penguin.gif'}
 					width={50}
 					height={50}
 					alt='Spinning penguin'
-					className='cursor-pointer'
 				/>
 				<h1 className='font-bold text-6xl'>Open-3d</h1>
 				<h3 className='text-2xl'>Por estudantes, para estudantes</h3>
@@ -27,8 +25,17 @@ export default function Home() {
 					</Button>
 				</Link>
 			</div>
-			<div className='flex w-full items-center justify-center'>
-				<span> Made with ❤️ by</span>
+			<div className='flex w-full items-center justify-center mb-4'>
+				<span className='flex gap-2'> Made with <motion.div
+					animate={{
+						scale: [1, 1.1, 1],
+						transition: {
+							duration: 1.5,
+							repeat: Infinity,
+							ease: "easeInOut"
+						}
+					}}
+				>❤️</motion.div> by</span>
 				<HoverCard>
 					<HoverCardTrigger asChild>
 						<Button variant={'link'} className='text-blue-600'>
