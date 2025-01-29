@@ -1,52 +1,60 @@
-'use client'
+"use client"
 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import { useEffect, useRef } from 'react'
+import { OrbitControls, useGLTF } from '@react-three/drei'
+import { useRef, Suspense, useState, Ref } from 'react'
+import { Group, Box3, Vector3 } from 'three'
 import { Mesh } from 'three'
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader' // Fixed import name
 
-interface STLViewerProps {
-  file: File
-}
 
-export default function STLViewer ({ file }: STLViewerProps) {
-  const meshRef = useRef<Mesh>(null)
+const LoadingFallback = () => {
+    const fallbackRef = useRef<Mesh>(null!)
 
-  useEffect(() => {
-    if (file && meshRef.current) {
-      const reader = new FileReader()
-      const loader = new STLLoader() // Fixed typo (StlLoader → STLLoader)
-
-      reader.onload = e => {
-        const contents = e.target?.result
-        if (contents) {
-          const geometry = loader.parse(contents as ArrayBuffer)
-          meshRef.current!.geometry = geometry
-          geometry.center() // Center the geometry
-
-          // Force update if needed
-          meshRef.current!.geometry.verticesNeedUpdate = true
+    useFrame((state, delta) => {
+        if (fallbackRef.current) {
+            fallbackRef.current.rotation.x += 0.5 * delta
+            fallbackRef.current.rotation.y += 0.5 * delta
         }
-      }
-      reader.readAsArrayBuffer(file)
-    }
-  }, [file])
+    })
 
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x += delta * 0.75
-    }
-  })
-
-  return (
-    <Canvas camera={{ position: [0, 0, 50], fov: 50 }}>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <mesh ref={meshRef}>
-        <meshStandardMaterial color='gray' />
-      </mesh>
-      <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
-    </Canvas>
-  )
+    return (
+        <mesh ref={fallbackRef}>
+            <boxGeometry args={[1, 1, 1]} />
+            {/* <circleGeometry args={[1, 1, 1]} /> */}
+            <meshStandardMaterial color='gray' />
+        </mesh>
+    )
 }
+const STLViewer = () => {
+    return (
+        <Canvas
+            shadows
+            camera={{ position: [5, 5, 0], fov: 20 }}
+            className='rounded-xl border-2 border-black'
+        >
+            <ambientLight intensity={0.5} />
+            <directionalLight
+                position={[5, 5, 5]}
+                intensity={1}
+                color='#0014dc'
+                castShadow
+                shadow-mapSize-width={1024}
+                shadow-mapSize-height={1024}
+            />
+            <directionalLight
+                position={[-5, -5, -5]}
+                intensity={0.8}
+                color='#ff8200'
+                castShadow
+                shadow-mapSize-width={1024}
+                shadow-mapSize-height={1024}
+            />
+            <gridHelper args={[10, 10, '#444444', '#222222']} />
+            <color attach='background' />
+            <LoadingFallback />
+            <OrbitControls />
+        </Canvas>
+    )
+}
+
+export default STLViewer
