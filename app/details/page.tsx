@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from 'react'
 import { toast, Toaster } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { Textarea } from "@/components/ui/textarea"
+import STLViewer from "../upload/STLViewer"
+import { fileURLToPath } from "url"
 
 
 type FormSchema = {
@@ -57,6 +59,51 @@ export default function DetailsPage() {
 	const [supports, setSupports] = useState(false)
 	const [comments, setComments] = useState<string>("")
 
+	const [fileUrl, setFileUrl] = useState<string>("")
+
+	const retrieveStoredFile = () => {
+		const base64String = localStorage.getItem('open-3d_file-data')
+		const fileName = localStorage.getItem('open-3d_file-name')
+		const fileType = localStorage.getItem('open-3d_file-type')
+
+		if (base64String) {
+			// Convert base64 back to a Blob
+			const byteString = atob(base64String.split(',')[1])
+			const mimeString = base64String.split(',')[0].split(':')[1].split(';')[0]
+			const ab = new ArrayBuffer(byteString.length)
+			const ia = new Uint8Array(ab)
+
+			for (let i = 0; i < byteString.length; i++) {
+				ia[i] = byteString.charCodeAt(i)
+			}
+
+			const blob = new Blob([ab], { type: fileType || mimeString })
+			const url = URL.createObjectURL(blob)
+			return { url, fileName }
+		}
+		return null
+	}
+
+	useEffect(() => {
+		const { url, fileName } = retrieveStoredFile()
+		if (!url || fileName.length == 0) {
+			toast("Arquivo não encontrado", {
+				description: "Sinto muito nosso dev é meio burro"
+			})
+			return
+		}
+
+		setFileUrl(url => {
+			//rm later
+			console.log("Set file URL")
+			return url
+		})
+
+		toast("Arquivo carregado com sucesso!", {
+			description: "╰(*°▽°*)╯"
+		})
+	}, [])
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 		if (!material || !extruderTemp || !baseTemp || supports === undefined) {
@@ -97,86 +144,92 @@ export default function DetailsPage() {
 				<h1 className="text-4xl font-bold text-center">Adicione as instruções para impressão</h1>
 				<h3 className=" text-gray-600">Caso não saiba como escolher, clique <u id="autofill" className="text-blue-500 hover:text-blue-800 cursor-pointer " onClick={_autofill_settings}>aqui</u></h3>
 			</div>
-			<form className="flex flex-col items-center justify-center gap-6 w-4/5">
-				<div className="flex flex-col items-center gap-4 w-full">
-					<Select value={material} onValueChange={setMaterial}>
-						<SelectTrigger className="w-3/5">
-							<AnimatePresence mode="wait">
-								<motion.div
-									key={material || "placeholder"}
-									variants={valueVariants}
-									initial="initial"
-									animate="animate"
-									exit="exit"
-								>
-									<SelectValue placeholder="Material da impressão" />
-								</motion.div>
-							</AnimatePresence>
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="PLA">PLA</SelectItem>
-							<SelectItem value="ABS">ABS</SelectItem>
-						</SelectContent>
-					</Select>
-					<Select value={extruderTemp} onValueChange={setExtruderTemp}>
-						<SelectTrigger className="w-3/5">
-							<AnimatePresence mode="wait">
-								<motion.div
-									key={extruderTemp || "placeholder"}
-									variants={valueVariants}
-									initial="initial"
-									animate="animate"
-									exit="exit"
-								>
-									<SelectValue placeholder="Temperatura do extrusor" />
-								</motion.div>
-							</AnimatePresence>
-						</SelectTrigger>
 
-						<SelectContent>
-							<SelectItem value="200">200</SelectItem>
-							<SelectItem value="220">220</SelectItem>
-						</SelectContent>
-					</Select>
+			{/* is using fallback model, fix it later */}
+			<div className="flex max-sm:flex-col items-center justify-evenly h-1/2 w-full ">
+				{fileUrl === "" ? (<div className="w-full h-full p-4"><STLViewer fileUrl={fileUrl} /></div>) : "not loaded yet"}
 
-					<Select value={baseTemp} onValueChange={setBaseTemp}>
-						<SelectTrigger className="w-3/5">
-							<AnimatePresence mode="wait">
-								<motion.div
-									key={baseTemp || "placeholder"}
-									variants={valueVariants}
-									initial="initial"
-									animate="animate"
-									exit="exit"
-								>
-									<SelectValue placeholder="Temperatura da base" />
-								</motion.div>
-							</AnimatePresence>
-						</SelectTrigger>
+				<form className="flex flex-col items-center justify-center gap-6 w-4/5 p-4">
+					<div className="flex flex-col items-center gap-4 w-full">
+						<Select value={material} onValueChange={setMaterial}>
+							<SelectTrigger className="w-3/5">
+								<AnimatePresence mode="wait">
+									<motion.div
+										key={material || "placeholder"}
+										variants={valueVariants}
+										initial="initial"
+										animate="animate"
+										exit="exit"
+									>
+										<SelectValue placeholder="Material da impressão" />
+									</motion.div>
+								</AnimatePresence>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="PLA">PLA</SelectItem>
+								<SelectItem value="ABS">ABS</SelectItem>
+							</SelectContent>
+						</Select>
+						<Select value={extruderTemp} onValueChange={setExtruderTemp}>
+							<SelectTrigger className="w-3/5">
+								<AnimatePresence mode="wait">
+									<motion.div
+										key={extruderTemp || "placeholder"}
+										variants={valueVariants}
+										initial="initial"
+										animate="animate"
+										exit="exit"
+									>
+										<SelectValue placeholder="Temperatura do extrusor" />
+									</motion.div>
+								</AnimatePresence>
+							</SelectTrigger>
 
-						<SelectContent>
-							<SelectItem value="60">60</SelectItem>
-							<SelectItem value="100">100</SelectItem>
-						</SelectContent>
-					</Select>
+							<SelectContent>
+								<SelectItem value="200">200</SelectItem>
+								<SelectItem value="220">220</SelectItem>
+							</SelectContent>
+						</Select>
 
-					<div className="flex items-center space-x-2">
-						<Checkbox
-							checked={supports}
-							onCheckedChange={(checked) => setSupports(checked as boolean)}
-						/>
-						<Label className="text-md font-normal">Suportes?</Label>
+						<Select value={baseTemp} onValueChange={setBaseTemp}>
+							<SelectTrigger className="w-3/5">
+								<AnimatePresence mode="wait">
+									<motion.div
+										key={baseTemp || "placeholder"}
+										variants={valueVariants}
+										initial="initial"
+										animate="animate"
+										exit="exit"
+									>
+										<SelectValue placeholder="Temperatura da base" />
+									</motion.div>
+								</AnimatePresence>
+							</SelectTrigger>
+
+							<SelectContent>
+								<SelectItem value="60">60</SelectItem>
+								<SelectItem value="100">100</SelectItem>
+							</SelectContent>
+						</Select>
+
+						<div className="flex items-center space-x-2">
+							<Checkbox
+								checked={supports}
+								onCheckedChange={(checked) => setSupports(checked as boolean)}
+							/>
+							<Label className="text-md font-normal">Suportes?</Label>
+						</div>
 					</div>
-				</div>
 
-			</form>
-			<Button
-				// type="submit"
-				onClick={handleSubmit}
-				className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-			>
-				Confirmar
-			</Button>
+					<Button
+						// type="submit"
+						onClick={handleSubmit}
+						className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+					>
+						Confirmar
+					</Button>
+				</form>
+			</div>
 			<Toaster />
 		</div>
 	)

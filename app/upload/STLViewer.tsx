@@ -61,7 +61,7 @@ const STLViewer = ({ fileUrl }: STLViewerProps) => {
 	return (
 		<Canvas
 			shadows
-			camera={{ position: [15, 15, 0], fov: 30 }}
+			camera={{ position: [10, 10, 0], fov: 20 }}
 			className='rounded-xl border-2 border-black'
 		>
 			<ambientLight intensity={0.5} color="#ffffff" />

@@ -29,7 +29,6 @@ export default function UploadPage() {
 
 
 	const handleSonner = (desc: string) => {
-		console.log('sonning')
 		toast("Arquivo recebido", {
 			description: desc,
 			action: {
@@ -62,7 +61,22 @@ export default function UploadPage() {
 		if (f) {
 			const url = URL.createObjectURL(f)
 			setFileURL(url)
-			console.log(`created file url ${url} | | ${fileURL}`)
+
+			// store file as base64 in localStorage
+			const reader = new FileReader()
+			reader.onload = () => {
+				const base64String = reader.result as string
+				localStorage.setItem('open-3d_file-data', base64String)
+				localStorage.setItem('open-3d_file-name', f.name)
+				localStorage.setItem('open-3d_file-type', f.type)
+				console.log(`Stored file ${f.name} in localStorage`)
+			}
+			reader.onerror = (error) => {
+				console.error('Error reading file:', error)
+			}
+			reader.readAsDataURL(f)
+
+			console.log(`Created temporary URL ${url} for current page`)
 		} else {
 			console.log("no file provided")
 		}
