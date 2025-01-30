@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output = "../app/types/types.js"
 }
 
 datasource db {
@@ -26,7 +27,6 @@ model Ticket {
   userId      String
   user        User      @relation(fields: [userId], references: [id])
 }
-
 enum Status {
   OPEN
   IN_PROGRESS
