@@ -1,10 +1,11 @@
 "use client"
 
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
-import { useRef, Suspense, useState, Ref } from 'react'
-import { Group, Box3, Vector3 } from 'three'
+import { useRef, Suspense, useState, Ref, useEffect } from 'react'
+import { Group, Box3, Vector3, BufferGeometry } from 'three'
 import { Mesh } from 'three'
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
 
 
 const LoadingFallback = () => {
@@ -13,7 +14,9 @@ const LoadingFallback = () => {
 	useFrame((state, delta) => {
 		if (fallbackRef.current) {
 			fallbackRef.current.rotation.x += 0.5 * delta
+			// fallbackRef.current.scale -= 0.2 * delta
 			fallbackRef.current.rotation.y += 0.5 * delta
+			// fallbackRef.current.scale += 0.2 * delta
 		}
 	})
 
@@ -30,30 +33,42 @@ interface STLViewerProps {
 }
 
 const Model = ({ fileUrl }: { fileUrl: string }) => {
-	const { scene } = useGLTF(fileUrl);
+	const [geometry, setGeometry] = useState<BufferGeometry>()
+	useEffect(() => {
+		const loader = new STLLoader()
+		loader.load(fileUrl, geo => {
+			setGeometry(geo)
+		})
+	}, [])
 	const groupRef = useRef<Group>(null!);
 
 	useFrame((state, delta) => {
 		if (groupRef.current) {
-			groupRef.current.rotation.y += 0.5 * delta;
+			groupRef.current.rotation.y += 0.4 * delta;
+			groupRef.current.rotation.x += 0.5 * delta;
 		}
 	});
 
-	return <primitive object={scene} ref={groupRef} />;
+	return (<mesh geometry={geometry} ref={groupRef}>
+		<meshStandardMaterial color="#0014dc" />
+	</mesh>)
 };
 
 const STLViewer = ({ fileUrl }: STLViewerProps) => {
+	useEffect(() => {
+		console.log(fileUrl, fileUrl.length)
+	})
 	return (
 		<Canvas
 			shadows
-			camera={{ position: [5, 5, 0], fov: 20 }}
+			camera={{ position: [15, 15, 0], fov: 30 }}
 			className='rounded-xl border-2 border-black'
 		>
-			<ambientLight intensity={0.5} />
+			<ambientLight intensity={0.5} color="#ffffff" />
 			<directionalLight
 				position={[5, 5, 5]}
 				intensity={1}
-				color='#0014dc'
+				color='#ffffff'
 				castShadow
 				shadow-mapSize-width={1024}
 				shadow-mapSize-height={1024}
@@ -62,7 +77,6 @@ const STLViewer = ({ fileUrl }: STLViewerProps) => {
 				position={[-5, -5, -5]}
 				intensity={0.8}
 				color='#ff8200'
-				castShadow
 				shadow-mapSize-width={1024}
 				shadow-mapSize-height={1024}
 			/>

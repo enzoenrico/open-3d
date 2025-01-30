@@ -1,7 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -65,7 +64,7 @@ export default function DetailsPage() {
 				description: "Por favor, preencha todos os campos, ou clique no botão para preencher automaticamente",
 				action: {
 					label: "Preencher",
-					onClick: () => autofill_settings()
+					onClick: () => { _autofill_settings() }
 				},
 			})
 			return
@@ -84,7 +83,7 @@ export default function DetailsPage() {
 			"Details successfully sent!")
 	}
 
-	const autofill_settings = (e: React.EventHandler) => {
+	const _autofill_settings = () => {
 		setMaterial(defaultValues.material)
 		setTimeout(() => { setExtruderTemp(defaultValues.tool_temperature.toString()) }, 500)
 		setTimeout(() => { setBaseTemp(defaultValues.base_temperature.toString()) }, 800)
@@ -96,7 +95,7 @@ export default function DetailsPage() {
 		<div className="w-screen h-screen flex flex-col items-center justify-center gap-4">
 			<div className="flex flex-col items-center p-8">
 				<h1 className="text-4xl font-bold text-center">Adicione as instruções para impressão</h1>
-				<h3 className=" text-gray-600">Caso não saiba como escolher, clique <u id="autofill" className="text-blue-500 hover:text-blue-800 cursor-pointer " onClick={autofill_settings}>aqui</u></h3>
+				<h3 className=" text-gray-600">Caso não saiba como escolher, clique <u id="autofill" className="text-blue-500 hover:text-blue-800 cursor-pointer " onClick={_autofill_settings}>aqui</u></h3>
 			</div>
 			<form className="flex flex-col items-center justify-center gap-6 w-4/5">
 				<div className="flex flex-col items-center gap-4 w-full">
@@ -171,13 +170,13 @@ export default function DetailsPage() {
 				</div>
 
 			</form>
-			<button
+			<Button
 				// type="submit"
 				onClick={handleSubmit}
 				className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
 			>
 				Confirmar
-			</button>
+			</Button>
 			<Toaster />
 		</div>
 	)

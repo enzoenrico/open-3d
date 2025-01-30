@@ -24,6 +24,7 @@ const variants = {
 export default function UploadPage() {
 	const [preview, setPreview] = useState(false)
 	const [file, setFile] = useState<File | null>(null)
+	const [fileURL, setFileURL] = useState<string>("")
 	const router = useRouter()
 
 
@@ -41,6 +42,10 @@ export default function UploadPage() {
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files[0]) {
 			setFile(event.target.files[0])
+
+			// creates the file url for showing the model
+			handleURLCreation(event.target.files[0])
+
 			handleSonner("Arquivo enviado com sucesso")
 			setTimeout(() => setPreview(true), 750)
 		}
@@ -50,6 +55,16 @@ export default function UploadPage() {
 		event.preventDefault()
 		if (file) {
 			router.push('/details')
+		}
+	}
+
+	const handleURLCreation = (f: File) => {
+		if (f) {
+			const url = URL.createObjectURL(f)
+			setFileURL(url)
+			console.log(`created file url ${url} | | ${fileURL}`)
+		} else {
+			console.log("no file provided")
 		}
 	}
 
@@ -70,7 +85,7 @@ export default function UploadPage() {
 							<div
 								className='w-full h-5/6 flex items-center justify-center'
 							>
-								<STLViewer file={file} />
+								<STLViewer fileUrl={fileURL} />
 							</div>
 						</motion.div>
 					) : (
