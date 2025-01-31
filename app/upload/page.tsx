@@ -5,8 +5,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import STLViewer from './STLViewer'
+import STLViewer from '@/components/STLViewer'
 import { toast, Toaster } from 'sonner'
+import Typewriter from '@/components/Typewriter'
 
 const variants = {
 	enter: {

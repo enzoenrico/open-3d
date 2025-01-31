@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast, Toaster } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { Textarea } from "@/components/ui/textarea"
-import STLViewer from "../upload/STLViewer"
+import STLViewer from "@/components/STLViewer"
 import { fileURLToPath } from "url"
 
 
@@ -62,6 +62,8 @@ export default function DetailsPage() {
 	const [fileUrl, setFileUrl] = useState<string>("")
 
 	const retrieveStoredFile = () => {
+		// fix this damn function
+
 		const base64String = localStorage.getItem('open-3d_file-data')
 		const fileName = localStorage.getItem('open-3d_file-name')
 		const fileType = localStorage.getItem('open-3d_file-type')

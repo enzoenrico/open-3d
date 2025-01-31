@@ -50,7 +50,7 @@ const Model = ({ fileUrl }: { fileUrl: string }) => {
 	});
 
 	return (<mesh geometry={geometry} ref={groupRef}>
-		<meshStandardMaterial color="#0014dc" />
+		<meshStandardMaterial color="gray" />
 	</mesh>)
 };
 
@@ -64,7 +64,7 @@ const STLViewer = ({ fileUrl }: STLViewerProps) => {
 			camera={{ position: [10, 10, 0], fov: 20 }}
 			className='rounded-xl border-2 border-black'
 		>
-			<ambientLight intensity={0.5} color="#ffffff" />
+			<ambientLight intensity={0.7} color="#ffffff" />
 			<directionalLight
 				position={[5, 5, 5]}
 				intensity={1}
@@ -75,8 +75,8 @@ const STLViewer = ({ fileUrl }: STLViewerProps) => {
 			/>
 			<directionalLight
 				position={[-5, -5, -5]}
-				intensity={0.8}
-				color='#ff8200'
+				intensity={0.9}
+				color='#ffffff'
 				shadow-mapSize-width={1024}
 				shadow-mapSize-height={1024}
 			/>

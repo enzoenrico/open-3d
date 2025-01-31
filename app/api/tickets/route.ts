@@ -1,11 +1,6 @@
 import prisma from "@/lib/prisma"
+import { Ticket } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-export async function GET() {
-	const tickets = await prisma.ticket.findMany()
-	return NextResponse.json(tickets)
-	return NextResponse.json({ message: "hi" })
-}
 
 type TnewTicket = {
 	material: "PLA" | "ABS"
@@ -13,6 +8,13 @@ type TnewTicket = {
 	base_temperature: number
 	supports: boolean
 	file: File | null | undefined
+}
+
+
+export async function GET() {
+	const tickets: Ticket[] = await prisma.ticket.findMany()
+	return NextResponse.json(tickets)
+	return NextResponse.json({ message: "hi" })
 }
 
 export async function POST(req: Request) {

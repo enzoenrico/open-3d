@@ -1,0 +1,380 @@
+"use client"
+import React, { useEffect, useState } from 'react';
+import {
+	LineChart,
+	Line,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	Legend,
+	ResponsiveContainer
+} from 'recharts';
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle
+} from "@/components/ui/card";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import STLViewer from '@/components/STLViewer';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowDownIcon } from 'lucide-react';
+import { Ticket } from '@prisma/client';
+
+// Mock data for tickets and graph
+const mockTicketGraphData = [
+	{ month: 'Jan', opened: 40, resolved: 30 },
+	{ month: 'Feb', opened: 35, resolved: 38 },
+	{ month: 'Mar', opened: 50, resolved: 45 },
+	{ month: 'Apr', opened: 45, resolved: 42 },
+	{ month: 'May', opened: 55, resolved: 50 },
+];
+
+
+const mockTickets = [
+	{
+		id: "T-001",
+		subject: "Login Issues",
+		priority: "High",
+		status: "Open",
+		customer: "John Doe",
+		created: "2024-01-30 14:30",
+		description: "Unable to log in to the system. Credentials seem incorrect.",
+		model3D: true // Indicates 3D model availability
+	},
+	{
+		id: "T-002",
+		subject: "Billing Question",
+		priority: "Medium",
+		status: "In Progress",
+		customer: "Jane Smith",
+		created: "2024-01-29 10:15",
+		description: "Discrepancy in monthly billing statement.",
+		model3D: false // No 3D model
+	},
+	{
+		id: "T-003",
+		subject: "Feature Request",
+		priority: "Low",
+		status: "New",
+		customer: "Alex Johnson",
+		created: "2024-01-28 16:45",
+		description: "Suggestion for new reporting feature in the dashboard.",
+		model3D: true // Indicates 3D model availability
+	}
+];
+
+const Dashboard = () => {
+	const [tickets, setTickets] = useState<Ticket[]>([]);
+	const [selectedTicket, setSelectedTicket] = useState(tickets[0]);
+
+	useEffect(() => {
+		const fetchTickets = async () => {
+			const t = await fetch('/api/tickets', {
+				method: "GET"
+			})
+			const t_json: Ticket[] = await t.json()
+			setTickets(t_json)
+		}
+		fetchTickets()
+	}, [])
+
+	const priorityVariants = {
+		"High": "destructive",
+		"Medium": "secondary",
+		"Low": "outline"
+	};
+
+	const statusVariants = {
+		"OPEN": "secondary",
+		"IN_PROGRESS": "default",
+		"RESOLVED": "outline",
+		"CLOSED": "success"
+	};
+
+	const handleTicketUpdate = (ticket) => {
+		// Placeholder for ticket update logic
+		console.log("Updating ticket:", ticket);
+		setTickets(tickets.map(t => t.id === ticket.id ? ticket : t));
+	};
+
+	const handleLogout = () => {
+		// Implement logout logic
+		console.log("Logging out");
+	};
+
+	return (
+		<div className="flex min-h-screen bg-gray-50">
+			{/* Sidebar with Ticket Table */}
+			<div className="w-1/3 border-r overflow-y-hidden h-screen p-6 bg-white">
+				<div className="flex justify-between items-center mb-4 ">
+					<h2 className="text-xl font-bold text-gray-800">Tickets</h2>
+					<div className="flex space-x-2">
+						<Button variant="outline" size="icon">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2z" />
+								<path d="M9 12h6" />
+								<path d="M12 9v6" />
+							</svg>
+						</Button>
+						<Button variant="outline" size="icon">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+							</svg>
+						</Button>
+					</div>
+				</div>
+				<div className="h-full overflow-y-scroll">
+					{/* change to standalone component */}
+					<div className='space-y-2'>
+						{tickets.map((ticket) => (
+							<Card
+								key={ticket.id}
+								className={`cursor-pointer ${selectedTicket?.id === ticket.id ? 'border-primary' : ''}`}
+								onClick={() => setSelectedTicket(ticket)}
+							>
+								<CardHeader className="p-4 pb-2">
+									<div className="flex justify-between items-center">
+										<span className="font-semibold">{ticket.id}</span>
+
+										<Badge variant={priorityVariants[ticket.priority]}>
+											{ticket.priority}
+										</Badge>
+									</div>
+								</CardHeader>
+								<CardContent className="p-4 pt-0">
+									<p className="text-sm text-gray-600">{ticket.subject}</p>
+									<div className="flex justify-between items-center mt-2">
+										<Badge variant={statusVariants[ticket.status]}>
+											{ticket.status}
+										</Badge>
+										<span className="text-xs text-gray-500">{ticket.created}</span>
+									</div>
+								</CardContent>
+							</Card>
+						))}</div>
+				</div>
+			</div>
+
+			{/* Main Content Area */}
+			<div className="w-2/3 p-6 space-y-2 h-screen overflow-y-scroll">
+				{/* User Profile and Logout */}
+				<div className="flex justify-between items-center">
+					<h1 className="text-2xl font-bold text-gray-800">Ticket Dashboard</h1>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" className="relative h-8 w-8 rounded-full">
+								<Avatar className="h-8 w-8">
+									<AvatarImage src="/placeholder-user.jpg" alt="User avatar" />
+									<AvatarFallback>UN</AvatarFallback>
+								</Avatar>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="w-56" align="end" forceMount>
+							<DropdownMenuLabel className="font-normal">
+								<div className="flex flex-col space-y-1">
+									<p className="text-sm font-medium leading-none">User Name</p>
+									<p className="text-xs leading-none text-muted-foreground">
+										support@example.com
+									</p>
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="mr-2 h-4 w-4"
+								>
+									<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+									<circle cx="12" cy="7" r="4" />
+								</svg>
+								<span>Profile</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={handleLogout}>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="mr-2 h-4 w-4"
+								>
+									<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+									<polyline points="16 17 21 12 16 7" />
+									<line x1="21" x2="9" y1="12" y2="12" />
+								</svg>
+								<span>Log out</span>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+
+				<Collapsible>
+					<Card>
+						<CardHeader>
+							<CardTitle className='flex items-center justify-around'>
+								<p className='w-3/4'>Ticket Metrics</p>
+								<CollapsibleTrigger>
+									<Button variant='ghost'>
+										<ArrowDownIcon />
+									</Button>
+								</CollapsibleTrigger>
+							</CardTitle>
+						</CardHeader>
+						<CollapsibleContent>
+							<CardContent className="h-64">
+								<ResponsiveContainer width="100%" height="100%">
+									<LineChart data={mockTicketGraphData}>
+										<CartesianGrid strokeDasharray="3 3" />
+										<XAxis dataKey="month" />
+										<YAxis />
+										<Tooltip />
+										<Legend />
+										<Line type="monotone" dataKey="opened" stroke="#8884d8" activeDot={{ r: 8 }} />
+										<Line type="monotone" dataKey="resolved" stroke="#82ca9d" />
+									</LineChart>
+								</ResponsiveContainer>
+							</CardContent>
+						</CollapsibleContent>
+					</Card>
+				</Collapsible>
+
+				{selectedTicket && (
+					<div className="flex flex-col gap-2 w-full">
+						<Collapsible>
+							<Card>
+								<CardHeader>
+									<CardTitle className='flex items-center justify-around'>
+										<p className='w-3/4'>3D model</p>
+										<CollapsibleTrigger>
+											<Button variant='ghost'>
+												<ArrowDownIcon />
+											</Button>
+										</CollapsibleTrigger>
+									</CardTitle>
+								</CardHeader>
+								<CollapsibleContent >
+									<CardContent className="w-full">
+										<STLViewer fileUrl="" />
+									</CardContent>
+								</CollapsibleContent>
+							</Card>
+						</Collapsible>
+						{/* Ticket Information */}
+						<Card>
+							<CardHeader>
+								<CardTitle>Ticket Details: {selectedTicket.id}</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="grid gap-4">
+									<div>
+										<span className="font-medium">Subject:</span>
+										<p>{selectedTicket.subject}</p>
+									</div>
+									<div className="flex gap-4">
+										<div>
+											<span className="font-medium">Priority:</span>
+											<Badge variant={priorityVariants[selectedTicket.priority]} className="ml-2">
+												{selectedTicket.priority}
+											</Badge>
+										</div>
+										<div>
+											<span className="font-medium">Status:</span>
+											<Select
+												defaultValue={selectedTicket.status}
+												onValueChange={(value) => {
+													const updatedTicket = { ...selectedTicket, status: value };
+													handleTicketUpdate(updatedTicket);
+												}}
+											>
+												<SelectTrigger className="w-[180px] ml-2">
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="OPEN">Open</SelectItem>
+													<SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+													<SelectItem value="RESOLVED">Resolved</SelectItem>
+													<SelectItem value="CLOSED">Closed</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+									<div>
+										<span className="font-medium">Description:</span>
+										<p>{selectedTicket.description}</p>
+									</div>
+									<div>
+										<span className="font-medium">Notes:</span>
+										<Textarea
+											placeholder="Add internal notes..."
+											className="mt-2"
+										/>
+									</div>
+									<div className="flex justify-end space-x-2">
+										<Button variant="outline">Cancel</Button>
+										<Button>Save Changes</Button>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* 3D Model Placeholder */}
+					</div>
+				)}
+			</div>
+		</div >
+	);
+};
+
+export default Dashboard;
