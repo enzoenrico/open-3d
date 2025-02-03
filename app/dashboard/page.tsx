@@ -38,7 +38,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import STLViewer from '@/components/STLViewer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ArrowDownIcon } from 'lucide-react';
-import { Ticket } from '@prisma/client';
+import { Ticket, TicketStatus } from '@prisma/client';
 
 // Mock data for tickets and graph
 const mockTicketGraphData = [
@@ -96,6 +96,7 @@ const Dashboard = () => {
 			setTickets(t_json)
 		}
 		fetchTickets()
+		console.log(tickets)
 	}, [])
 
 	const priorityVariants = {
@@ -104,11 +105,11 @@ const Dashboard = () => {
 		"Low": "outline"
 	};
 
-	const statusVariants = {
-		"OPEN": "secondary",
-		"IN_PROGRESS": "default",
-		"RESOLVED": "outline",
-		"CLOSED": "success"
+	const statusVariants: Record<TicketStatus, string> = {
+		"OPEN": "default",
+		"IN_PROGRESS": "secondary",
+		"RESOLVED": "success",
+		"CLOSED": "outline"
 	};
 
 	const handleTicketUpdate = (ticket) => {
@@ -128,40 +129,6 @@ const Dashboard = () => {
 			<div className="w-1/3 border-r overflow-y-hidden h-screen p-6 bg-white">
 				<div className="flex justify-between items-center mb-4 ">
 					<h2 className="text-xl font-bold text-gray-800">Tickets</h2>
-					<div className="flex space-x-2">
-						<Button variant="outline" size="icon">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							>
-								<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2z" />
-								<path d="M9 12h6" />
-								<path d="M12 9v6" />
-							</svg>
-						</Button>
-						<Button variant="outline" size="icon">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							>
-								<path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-							</svg>
-						</Button>
-					</div>
 				</div>
 				<div className="h-full overflow-y-scroll">
 					{/* change to standalone component */}
@@ -174,7 +141,7 @@ const Dashboard = () => {
 							>
 								<CardHeader className="p-4 pb-2">
 									<div className="flex justify-between items-center">
-										<span className="font-semibold">{ticket.id}</span>
+										<span className="font-semibold">{ticket.title}</span>
 
 										<Badge variant={priorityVariants[ticket.priority]}>
 											{ticket.priority}
@@ -266,9 +233,9 @@ const Dashboard = () => {
 							<CardTitle className='flex items-center justify-around'>
 								<p className='w-3/4'>Ticket Metrics</p>
 								<CollapsibleTrigger>
-									<Button variant='ghost'>
-										<ArrowDownIcon />
-									</Button>
+									{/* <Button variant='ghost'> */}
+									<ArrowDownIcon />
+									{/* </Button> */}
 								</CollapsibleTrigger>
 							</CardTitle>
 						</CardHeader>
@@ -298,9 +265,9 @@ const Dashboard = () => {
 									<CardTitle className='flex items-center justify-around'>
 										<p className='w-3/4'>3D model</p>
 										<CollapsibleTrigger>
-											<Button variant='ghost'>
-												<ArrowDownIcon />
-											</Button>
+											{/* <Button variant='ghost'> */}
+											<ArrowDownIcon />
+											{/* </Button> */}
 										</CollapsibleTrigger>
 									</CardTitle>
 								</CardHeader>

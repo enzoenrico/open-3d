@@ -124,10 +124,11 @@ export default function DetailsPage() {
 				material: material,
 				tool_temperature: extruderTemp,
 				base_temperature: baseTemp,
-				supports: supports
 			}),
 		})
 		console.log(return_data)
+		const d_json = await return_data.json()
+		console.log(d_json)
 		toast(
 			"Details successfully sent!")
 	}
