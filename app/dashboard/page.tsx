@@ -37,8 +37,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import STLViewer from '@/components/STLViewer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowDownIcon } from 'lucide-react';
+import { ArrowDownIcon, Loader } from 'lucide-react';
 import { Ticket, TicketStatus } from '@prisma/client';
+import { toast, Toaster } from 'sonner';
 
 // Mock data for tickets and graph
 const mockTicketGraphData = [
@@ -86,17 +87,34 @@ const mockTickets = [
 const Dashboard = () => {
 	const [tickets, setTickets] = useState<Ticket[]>([]);
 	const [selectedTicket, setSelectedTicket] = useState(tickets[0]);
+	const [isLoading, setLoading] = useState<boolean>(false)
 
 	useEffect(() => {
 		const fetchTickets = async () => {
-			const t = await fetch('/api/tickets', {
-				method: "GET"
-			})
-			const t_json: Ticket[] = await t.json()
-			setTickets(t_json)
+			setLoading(true)
+			try {
+				const t = await fetch('/api/tickets', {
+					method: "GET"
+				})
+				const t_json: Ticket[] = await t.json()
+				if (t_json.length < 1) {
+					console.error('empty ticket array')
+					throw new Error("Empty cards returned")
+				}
+				setTickets(t_json)
+				console.log(t_json)
+				setLoading(false)
+			} catch (error) {
+				console.error(error)
+				toast("Erro carregando tickets...", {
+					description: error
+				})
+			} finally {
+				setLoading(false)
+			}
 		}
 		fetchTickets()
-		console.log(tickets)
+		// console.log(tickets)
 	}, [])
 
 	const priorityVariants = {
@@ -133,32 +151,42 @@ const Dashboard = () => {
 				<div className="h-full overflow-y-scroll">
 					{/* change to standalone component */}
 					<div className='space-y-2'>
-						{tickets.map((ticket) => (
-							<Card
-								key={ticket.id}
-								className={`cursor-pointer ${selectedTicket?.id === ticket.id ? 'border-primary' : ''}`}
-								onClick={() => setSelectedTicket(ticket)}
-							>
-								<CardHeader className="p-4 pb-2">
-									<div className="flex justify-between items-center">
-										<span className="font-semibold">{ticket.title}</span>
+						{!isLoading || tickets.length >= 1 ?
+							(tickets.map((this_ticket) => (
+								<Card
+									key={this_ticket.id}
+									className={`cursor-pointer ${selectedTicket?.id === this_ticket.id ? 'border-primary' : ''}`}
+									onClick={() => setSelectedTicket(this_ticket)}
+								>
+									<CardHeader className="p-4 pb-2">
+										<div className="flex justify-between items-center">
+											<span className="font-semibold">{this_ticket.title}</span>
 
-										<Badge variant={priorityVariants[ticket.priority]}>
-											{ticket.priority}
-										</Badge>
-									</div>
-								</CardHeader>
-								<CardContent className="p-4 pt-0">
-									<p className="text-sm text-gray-600">{ticket.subject}</p>
-									<div className="flex justify-between items-center mt-2">
-										<Badge variant={statusVariants[ticket.status]}>
-											{ticket.status}
-										</Badge>
-										<span className="text-xs text-gray-500">{ticket.created}</span>
-									</div>
-								</CardContent>
-							</Card>
-						))}</div>
+											<Badge variant={priorityVariants[this_ticket.priority]}>
+												{this_ticket.priority}
+											</Badge>
+										</div>
+									</CardHeader>
+									<CardContent className="p-4 pt-0">
+										<p className="text-sm text-gray-600">{this_ticket.subject}</p>
+										<div className="flex justify-between items-center mt-2">
+											<Badge variant={statusVariants[this_ticket.status]}>
+												{this_ticket.status}
+											</Badge>
+											<span className="text-xs text-gray-500">{this_ticket.created}</span>
+										</div>
+									</CardContent>
+								</Card>
+
+
+							)))
+							: (
+								<div className='h-full w-full flex items-center justify-center'>
+									<Loader className='animate-spin' />
+								</div>
+							)
+						}
+					</div>
 				</div>
 			</div>
 
@@ -340,6 +368,7 @@ const Dashboard = () => {
 					</div>
 				)}
 			</div>
+			<Toaster />
 		</div >
 	);
 };

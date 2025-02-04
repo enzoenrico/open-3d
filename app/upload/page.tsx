@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useTransform, useTime } from 'framer-motion'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import STLViewer from '@/components/STLViewer'
 import { toast, Toaster } from 'sonner'
 import Typewriter from '@/components/Typewriter'
 import { Separator } from '@/components/ui/separator'
-import { Sparkles } from 'lucide-react'
+import { Rotate3D, Sparkles } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const variants = {
@@ -25,12 +25,25 @@ const variants = {
 	}
 }
 
+
 export default function UploadPage() {
+	// for the cool ai rainbow animation
+	const [isTyping, setIsTyping] = useState(false)
+	// optimize this ^
+
 	const [preview, setPreview] = useState(false)
 	const [file, setFile] = useState<File | null>(null)
 	const [fileURL, setFileURL] = useState<string>("")
 	const router = useRouter()
 
+	const time = useTime()
+	const rotate_bg = useTransform(time, [0, 3000], [0, 360], {
+		clamp: false
+	})
+
+	const rotating_bg = useTransform(rotate_bg, (r) => {
+		return `conic-gradient(from ${r}deg, #ff4545, #00ff99, #006aff, #ff0095, #ff4545)`
+	})
 
 	const handleSonner = (desc: string) => {
 		toast("Arquivo recebido", {
@@ -148,7 +161,26 @@ export default function UploadPage() {
 				<form className='h-1/5 flex flex-col items-center justify-center'>
 					{/* fix later */}
 					<div className='flex gap-2'>
-						<Input type="text" placeholder='Descreva seu modelo' />
+
+
+						<div className='flex gap-2 relative items-center justify-center'>
+							<Input
+								type="text"
+								placeholder='Descreva seu modelo'
+								className='relative z-10 bg-white rounded-md focus:border-none'
+								onFocus={() => setIsTyping(true)}
+								onBlur={(e) => setTimeout(() => { setIsTyping(false) }, 300)}
+							/>
+							{isTyping && (
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeInOut' } }}
+									exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeInOut' } }}
+									className='absolute -inset-[1px] rounded-lg px-6'
+									style={{ background: rotating_bg }}
+								/>
+							)}
+						</div>
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger>
