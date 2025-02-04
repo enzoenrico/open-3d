@@ -82,11 +82,20 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+				'colors': {
+					'0%': { color: "#ff0000" },
+					'20%': { color: "#ffff00" },
+					'40%': { color: "#00ff00" },
+					'60%': { color: "#00ffff" },
+					'80%': { color: "#00aaff" },
+					'100%': { color: "#ffaa00" },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'colors': 'colors 15s ease-in-out infinite',
 			},
 			scrollbar: {
 				track: { background: 'hsl(var(--muted))' },

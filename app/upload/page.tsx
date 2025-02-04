@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input'
 import STLViewer from '@/components/STLViewer'
 import { toast, Toaster } from 'sonner'
 import Typewriter from '@/components/Typewriter'
+import { Separator } from '@/components/ui/separator'
+import { Sparkles } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const variants = {
 	enter: {
@@ -84,49 +87,85 @@ export default function UploadPage() {
 	}
 
 	return (
-		<div className='flex flex-col items-center justify-center min-h-screen py-2 w-screen h-screen'>
-			<h1 className='text-3xl font-bold mb-8'>Upload STL File</h1>
-			<form onSubmit={handleSubmit} className='w-full max-w-xs h-3/6 flex flex-col items-center justify-center'>
-				<AnimatePresence mode="wait">
-					{preview ? (
-						<motion.div
-							key="preview"
-							initial={{ opacity: 0, y: 20 }}
-							animate="enter"
-							exit="exit"
-							variants={variants}
-							className='h-full flex items-center justify-center'
-						>
-							<div
-								className='w-full h-5/6 flex items-center justify-center'
+		<div className='flex flex-row max-md:flex-col items-center justify-evenly gap-2 w-screen h-screen'>
+			<div className='flex flex-col items-center justify-center gap-4 w-1/2 h-full max-md:h-1/2'>
+				<div className='flex flex-col justify-start gap-1'>
+					<h1 className='text-3xl font-bold'>Insira seu arquivo aqui</h1>
+					<p className='text-md  text-slate-700'>Apenas arquivos .stl suportados no momento</p>
+				</div>
+				<form onSubmit={handleSubmit} className={`w-full max-w-xs ${preview ? `h-3/5` : `h-1/5`} gap-2 flex flex-col items-center justify-center`}>
+					<AnimatePresence mode="wait">
+						{preview ? (
+							<motion.div
+								key="preview"
+								initial={{ opacity: 0, y: 20 }}
+								animate="enter"
+								exit="exit"
+								variants={variants}
+								className='h-full flex items-center justify-center'
 							>
-								<STLViewer fileUrl={fileURL} />
-							</div>
-						</motion.div>
-					) : (
-						<motion.div
-							key="input"
-							initial={{ opacity: 0, y: 20 }}
-							animate="enter"
-							exit="exit"
-							variants={variants}
-						>
-							<Input
-								type='file'
-								accept='.stl'
-								onChange={handleFileChange}
-								className='mb-4'
-							/>
-						</motion.div>
-					)}
-				</AnimatePresence>
-				< Button type='submit' disabled={!file} className='w-full'>
-					Next
-				</Button>
-			</form>
+								<div
+									className='w-full h-full flex items-center justify-center p-2'
+								>
+									<STLViewer fileUrl={fileURL} />
+								</div>
+							</motion.div>
+						) : (
+							<motion.div
+								key="input"
+								initial={{ opacity: 0, y: 20 }}
+								animate="enter"
+								exit="exit"
+								variants={variants}
+							>
+								<Input
+									type='file'
+									accept='.stl'
+									onChange={handleFileChange}
+									className='mb-4'
+									placeholder='Insira seu arquivo aqui'
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
+					< Button type='submit' disabled={!file} className='w-full'>
+						Next
+					</Button>
+				</form>
 
+
+
+			</div>
+
+			<Separator orientation={window.innerWidth > 768 ? "vertical" : "horizontal"} className="h-3/4  max-md:w-3/4 max-md:h-[1px]" />
+
+			{/* helpdesk */}
+			<div className='flex flex-col items-center justify-center gap-4 w-1/2 max-md:h-1/2 h-full'>
+				<div className='flex flex-col justify-start gap-1'>
+					<h1 className='text-3xl font-bold'>Decreva seu modelo </h1>
+					<p className='text-md  text-slate-700'>Um de nossos profissionais entrará em contato para uma cotação</p>
+				</div>
+				<form className='h-1/5 flex flex-col items-center justify-center'>
+					{/* fix later */}
+					<div className='flex gap-2'>
+						<Input type="text" placeholder='Descreva seu modelo' />
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<Button>
+										<Sparkles className="animate-colors " />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									{/*  TODO: add the ai chat builder */}
+									<p>Coming soon...</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</div>
+				</form>
+			</div>
 			<Toaster theme='dark' />
-
-		</div >
+		</div>
 	)
 }
