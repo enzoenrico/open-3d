@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form"
 import { useEffect, useRef, useState } from 'react'
 import { toast, Toaster } from "sonner"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useTime, useTransform } from "framer-motion"
 import { Textarea } from "@/components/ui/textarea"
 import STLViewer from "@/components/STLViewer"
 import { fileURLToPath } from "url"
@@ -61,14 +61,27 @@ export default function DetailsPage() {
 
 	const [fileUrl, setFileUrl] = useState<string>("")
 
+	const [isHovered, setIsHovered] = useState<boolean>(false)
+
+	// gradient animations
+	const time = useTime()
+	const rotate_bg = useTransform(time, [0, 3000], [0, 360], {
+		clamp: false
+	})
+
+	const rotating_bg = useTransform(rotate_bg, (r) => {
+		return `conic-gradient(from ${r}deg, #ff4545, #00ff99, #006aff, #ff0095, #ff4545)`
+	})
+
 	const retrieveStoredFile = () => {
 		// fix this damn function
-
 		const base64String = localStorage.getItem('open-3d_file-data')
 		const fileName = localStorage.getItem('open-3d_file-name')
 		const fileType = localStorage.getItem('open-3d_file-type')
 
 		if (base64String) {
+			console.log("Found file in local_storage")
+
 			// Convert base64 back to a Blob
 			const byteString = atob(base64String.split(',')[1])
 			const mimeString = base64String.split(',')[0].split(':')[1].split(';')[0]
@@ -80,6 +93,7 @@ export default function DetailsPage() {
 			}
 
 			const blob = new Blob([ab], { type: fileType || mimeString })
+			console.log('Created file blob:')
 			const url = URL.createObjectURL(blob)
 			return { url, fileName }
 		}
@@ -88,18 +102,15 @@ export default function DetailsPage() {
 
 	useEffect(() => {
 		const { url, fileName } = retrieveStoredFile()
-		if (!url || fileName.length == 0) {
+		console.log(url)
+		console.log(fileName)
+		if (url === " " || fileName.length == 0) {
 			toast("Arquivo não encontrado", {
 				description: "Sinto muito nosso dev é meio burro"
 			})
 			return
 		}
-
-		setFileUrl(url => {
-			//rm later
-			console.log("Set file URL")
-			return url
-		})
+		setFileUrl(url)
 
 		toast("Arquivo carregado com sucesso!", {
 			description: "╰(*°▽°*)╯"
@@ -150,7 +161,18 @@ export default function DetailsPage() {
 
 			{/* is using fallback model, fix it later */}
 			<div className="flex max-sm:flex-col items-center justify-evenly h-1/2 w-full ">
-				{fileUrl === "" ? (<div className="w-full h-full p-4"><STLViewer fileUrl={fileUrl} /></div>) : "not loaded yet"}
+				{
+					fileUrl ?
+						(
+							<div className="w-full h-full p-4">
+								<STLViewer fileUrl={fileUrl} />
+							</div>
+						) : (
+							<p className="w-full h-full flex items-center justify-center italic animate-pulse">
+								loading...
+							</p>
+						)
+				}
 
 				<form className="flex flex-col items-center justify-center gap-6 w-4/5 p-4">
 					<div className="flex flex-col items-center gap-4 w-full">
@@ -224,13 +246,29 @@ export default function DetailsPage() {
 						</div>
 					</div>
 
-					<Button
-						// type="submit"
-						onClick={handleSubmit}
-						className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-					>
-						Confirmar
-					</Button>
+					<div className="relative flex items-center justify-center">
+						{/* Using AnimatePresence for proper enter/exit animations */}
+						<AnimatePresence>
+							{isHovered && (
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeInOut' } }}
+									exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeInOut' } }}
+									className='absolute -inset-1 bg-gradient-to-r from-red-500 via-green-500 to-blue-500 rounded-lg opacity-75 blur-sm'
+									style={{ background: rotating_bg }}
+								/>
+							)}
+						</AnimatePresence>
+						<Button
+							// type="submit"
+							onClick={handleSubmit}
+							onMouseEnter={() => setIsHovered(true)}
+							onMouseLeave={() => setIsHovered(false)}
+							className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 z-10"
+						>
+							Confirmar
+						</Button>
+					</div>
 				</form>
 			</div>
 			<Toaster />
