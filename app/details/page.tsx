@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useForm } from "react-hook-form"
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { toast, Toaster } from "sonner"
 import { motion, AnimatePresence, useTime, useTransform } from "framer-motion"
 import { Textarea } from "@/components/ui/textarea"
 import STLViewer from "@/components/STLViewer"
 import { fileURLToPath } from "url"
+import { FileContext } from "@/contexts/FileContext/context"
 
 
 type FormSchema = {
@@ -59,9 +60,9 @@ export default function DetailsPage() {
 	const [supports, setSupports] = useState(false)
 	const [comments, setComments] = useState<string>("")
 
-	const [fileUrl, setFileUrl] = useState<string>("")
-
 	const [isHovered, setIsHovered] = useState<boolean>(false)
+
+	const { previewUrl } = useContext(FileContext)
 
 	// gradient animations
 	const time = useTime()
@@ -73,44 +74,16 @@ export default function DetailsPage() {
 		return `conic-gradient(from ${r}deg, #ff4545, #00ff99, #006aff, #ff0095, #ff4545)`
 	})
 
-	const retrieveStoredFile = () => {
-		// fix this damn function
-		const base64String = localStorage.getItem('open-3d_file-data')
-		const fileName = localStorage.getItem('open-3d_file-name')
-		const fileType = localStorage.getItem('open-3d_file-type')
-
-		if (base64String) {
-			console.log("Found file in local_storage")
-
-			// Convert base64 back to a Blob
-			const byteString = atob(base64String.split(',')[1])
-			const mimeString = base64String.split(',')[0].split(':')[1].split(';')[0]
-			const ab = new ArrayBuffer(byteString.length)
-			const ia = new Uint8Array(ab)
-
-			for (let i = 0; i < byteString.length; i++) {
-				ia[i] = byteString.charCodeAt(i)
-			}
-
-			const blob = new Blob([ab], { type: fileType || mimeString })
-			console.log('Created file blob:')
-			const url = URL.createObjectURL(blob)
-			return { url, fileName }
-		}
-		return null
-	}
 
 	useEffect(() => {
-		const { url, fileName } = retrieveStoredFile()
-		console.log(url)
-		console.log(fileName)
-		if (url === " " || fileName.length == 0) {
+		// change
+		if (!previewUrl || previewUrl == "") {
 			toast("Arquivo não encontrado", {
 				description: "Sinto muito nosso dev é meio burro"
 			})
 			return
 		}
-		setFileUrl(url)
+		// setFileUrl(url)
 
 		toast("Arquivo carregado com sucesso!", {
 			description: "╰(*°▽°*)╯"
@@ -162,10 +135,10 @@ export default function DetailsPage() {
 			{/* is using fallback model, fix it later */}
 			<div className="flex max-sm:flex-col items-center justify-evenly h-1/2 w-full ">
 				{
-					fileUrl ?
+					previewUrl ?
 						(
 							<div className="w-full h-full p-4">
-								<STLViewer fileUrl={fileUrl} />
+								<STLViewer fileUrl={previewUrl} />
 							</div>
 						) : (
 							<p className="w-full h-full flex items-center justify-center italic animate-pulse">

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence, useTransform, useTime } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import Typewriter from '@/components/Typewriter'
 import { Separator } from '@/components/ui/separator'
 import { Rotate3D, Sparkles } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { FileContext } from '@/contexts/FileContext/context'
 
 const variants = {
 	enter: {
@@ -32,9 +33,10 @@ export default function UploadPage() {
 	// optimize this ^
 
 	const [preview, setPreview] = useState(false)
-	const [file, setFile] = useState<File | null>(null)
-	const [fileURL, setFileURL] = useState<string>("")
 	const router = useRouter()
+
+	// file context
+	const { setFile, setPreviewUrl, file, previewUrl } = useContext(FileContext)
 
 	const time = useTime()
 	const rotate_bg = useTransform(time, [0, 3000], [0, 360], {
@@ -61,8 +63,8 @@ export default function UploadPage() {
 
 			// creates the file url for showing the model
 			handleURLCreation(event.target.files[0])
-
 			handleSonner("Arquivo enviado com sucesso")
+			//TODO: change later
 			setTimeout(() => setPreview(true), 750)
 		}
 	}
@@ -77,23 +79,7 @@ export default function UploadPage() {
 	const handleURLCreation = (f: File) => {
 		if (f) {
 			const url = URL.createObjectURL(f)
-			setFileURL(url)
-
-			// store file as base64 in localStorage
-			const reader = new FileReader()
-			reader.onload = () => {
-				const base64String = reader.result as string
-				// transformar em array buffer de novo
-				localStorage.setItem('open-3d_file-data', base64String)
-				localStorage.setItem('open-3d_file-name', f.name)
-				localStorage.setItem('open-3d_file-type', f.type)
-				console.log(`Stored file ${f.name} in localStorage`)
-			}
-			reader.onerror = (error) => {
-				console.error('Error reading file:', error)
-			}
-			reader.readAsDataURL(f)
-
+			setPreviewUrl(url)
 			console.log(`Created temporary URL ${url} for current page`)
 		} else {
 			console.log("no file provided")
@@ -121,7 +107,7 @@ export default function UploadPage() {
 								<div
 									className='w-full h-full flex items-center justify-center p-2'
 								>
-									<STLViewer fileUrl={fileURL} />
+									<STLViewer fileUrl={previewUrl} />
 								</div>
 							</motion.div>
 						) : (
