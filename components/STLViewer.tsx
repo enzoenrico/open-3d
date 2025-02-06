@@ -55,9 +55,6 @@ const Model = ({ fileUrl }: { fileUrl: string }) => {
 };
 
 const STLViewer = ({ fileUrl }: STLViewerProps) => {
-	useEffect(() => {
-		console.log(fileUrl, fileUrl.length)
-	})
 	return (
 		<Canvas
 			shadows

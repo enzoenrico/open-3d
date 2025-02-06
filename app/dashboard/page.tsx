@@ -51,39 +51,6 @@ const mockTicketGraphData = [
 ];
 
 
-const mockTickets = [
-	{
-		id: "T-001",
-		subject: "Login Issues",
-		priority: "High",
-		status: "Open",
-		customer: "John Doe",
-		created: "2024-01-30 14:30",
-		description: "Unable to log in to the system. Credentials seem incorrect.",
-		model3D: true // Indicates 3D model availability
-	},
-	{
-		id: "T-002",
-		subject: "Billing Question",
-		priority: "Medium",
-		status: "In Progress",
-		customer: "Jane Smith",
-		created: "2024-01-29 10:15",
-		description: "Discrepancy in monthly billing statement.",
-		model3D: false // No 3D model
-	},
-	{
-		id: "T-003",
-		subject: "Feature Request",
-		priority: "Low",
-		status: "New",
-		customer: "Alex Johnson",
-		created: "2024-01-28 16:45",
-		description: "Suggestion for new reporting feature in the dashboard.",
-		model3D: true // Indicates 3D model availability
-	}
-];
-
 const Dashboard = () => {
 	const [tickets, setTickets] = useState<Ticket[]>([]);
 	const [selectedTicket, setSelectedTicket] = useState(tickets[0]);
@@ -101,7 +68,9 @@ const Dashboard = () => {
 					console.error('empty ticket array')
 					throw new Error("Empty cards returned")
 				}
-				setTickets(t_json)
+
+				// sort by latest
+				setTickets(t_json.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
 				console.log(t_json)
 				setLoading(false)
 			} catch (error) {
@@ -117,11 +86,6 @@ const Dashboard = () => {
 		// console.log(tickets)
 	}, [])
 
-	const priorityVariants = {
-		"High": "destructive",
-		"Medium": "secondary",
-		"Low": "outline"
-	};
 
 	const statusVariants: Record<TicketStatus, string> = {
 		"OPEN": "default",
@@ -135,6 +99,11 @@ const Dashboard = () => {
 		console.log("Updating ticket:", ticket);
 		setTickets(tickets.map(t => t.id === ticket.id ? ticket : t));
 	};
+
+	const saveChanges = () => {
+		// change the specific selected ticket
+		return
+	}
 
 	const handleLogout = () => {
 		// Implement logout logic
@@ -161,14 +130,10 @@ const Dashboard = () => {
 									<CardHeader className="p-4 pb-2">
 										<div className="flex justify-between items-center">
 											<span className="font-semibold">{this_ticket.title}</span>
-
-											<Badge variant={priorityVariants[this_ticket.priority]}>
-												{this_ticket.priority}
-											</Badge>
 										</div>
 									</CardHeader>
 									<CardContent className="p-4 pt-0">
-										<p className="text-sm text-gray-600">{this_ticket.subject}</p>
+										<p className="text-sm text-gray-600 max-w-full text-ellipsis overflow-hidden">{this_ticket.description}</p>
 										<div className="flex justify-between items-center mt-2">
 											<Badge variant={statusVariants[this_ticket.status]}>
 												{this_ticket.status}
@@ -300,7 +265,7 @@ const Dashboard = () => {
 									</CardTitle>
 								</CardHeader>
 								<CollapsibleContent >
-									<CardContent className="w-full">
+									<CardContent className="w-full h-full">
 										<STLViewer fileUrl="" />
 									</CardContent>
 								</CollapsibleContent>
@@ -313,17 +278,7 @@ const Dashboard = () => {
 							</CardHeader>
 							<CardContent>
 								<div className="grid gap-4">
-									<div>
-										<span className="font-medium">Subject:</span>
-										<p>{selectedTicket.subject}</p>
-									</div>
 									<div className="flex gap-4">
-										<div>
-											<span className="font-medium">Priority:</span>
-											<Badge variant={priorityVariants[selectedTicket.priority]} className="ml-2">
-												{selectedTicket.priority}
-											</Badge>
-										</div>
 										<div>
 											<span className="font-medium">Status:</span>
 											<Select
@@ -349,16 +304,9 @@ const Dashboard = () => {
 										<span className="font-medium">Description:</span>
 										<p>{selectedTicket.description}</p>
 									</div>
-									<div>
-										<span className="font-medium">Notes:</span>
-										<Textarea
-											placeholder="Add internal notes..."
-											className="mt-2"
-										/>
-									</div>
 									<div className="flex justify-end space-x-2">
 										<Button variant="outline">Cancel</Button>
-										<Button>Save Changes</Button>
+										<Button onClick={saveChanges}>Save Changes</Button>
 									</div>
 								</div>
 							</CardContent>

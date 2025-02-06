@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 
 export const GET = async () => {
 	// need authentication to access private storage
-	const data = await supabase.storage.listBuckets()
+	const data = await supabase.storage.from('3d-files').list()
 	console.log(data)
 	return NextResponse.json(
 		{ message: data.data },

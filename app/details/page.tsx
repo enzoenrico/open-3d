@@ -91,6 +91,35 @@ export default function DetailsPage() {
 			description: "╰(*°▽°*)╯"
 		})
 	}, [])
+	const create_printInfo_entry = async () => {
+		const printInfo: PrintInfo = {
+			color: color,
+			material: material,
+			sizeX: size[0],
+			sizeY: size[1],
+			sizeZ: size[2],
+		}
+
+		var print_info_id = ""
+		try {
+			const r = await fetch('/api/print_info',
+				{
+					method: "POST",
+					body: JSON.stringify(printInfo)
+				}
+			)
+			const r_json = await r.json()
+			print_info_id = r_json.message
+		} catch (error) {
+			throw Error(error)
+		}
+		return print_info_id
+	}
+
+	const create_file_entry = async() => {
+		return
+	}
+
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -115,32 +144,12 @@ export default function DetailsPage() {
 			return
 		}
 
-		const printInfo: PrintInfo = {
-			color: color,
-			material: material,
-			sizeX: size[0],
-			sizeY: size[1],
-			sizeZ: size[2],
-		}
-
-		var print_info_id = ""
-		try {
-			const r = await fetch('/api/print_info',
-				{
-					method: "POST",
-					body: JSON.stringify(printInfo)
-				}
-			)
-			const r_json = await r.json()
-			print_info_id = r_json.message
-		} catch (error) {
-			throw Error(error)
-		}
+		const p_id = await create_printInfo_entry()
 
 		const new_ticket: Ticket = {
 			title: file.name,
 			description: comments || "no description provided",
-			printInfoId: print_info_id || '',
+			printInfoId: p_id || '',
 			status: "OPEN",
 			authorId: 'dev'
 		}
