@@ -6,6 +6,7 @@ import { HoverCardTrigger } from '@radix-ui/react-hover-card'
 import Image from 'next/image'
 import { motion, AnimatePresence } from "framer-motion"
 import Link from 'next/link'
+import Typewriter from '@/components/Typewriter'
 
 export default function Home() {
 	return (
@@ -17,7 +18,8 @@ export default function Home() {
 					height={50}
 					alt='Spinning penguin'
 				/>
-				<h1 className='font-bold text-6xl'>Open-3d</h1>
+				{/* <h1 className='font-bold text-6xl'>Open-3d</h1> */}
+				<Typewriter text="Open-3d" styling='font-bold text-6xl' />
 				<h3 className='text-2xl'>Por estudantes, para estudantes</h3>
 				<Link href={'/upload'}>
 					<Button variant={'default'} className='w-40 h-10'>
