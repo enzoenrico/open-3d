@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { Ticket } from "@prisma/client";
+import { Ticket, PrintInfo } from '@prisma/client';
 import { NextResponse } from "next/server";
 
 type TnewTicket = {
@@ -30,8 +30,20 @@ export async function POST(req: Request) {
 		try {
 			const created_ticket = await prisma.ticket.create({
 				data: {
-					title: 'dev test',
-					authorId: 'dev'
+					User: {
+						connect: {
+							id: "dev"
+						}
+					},
+					title: info.title,
+					description: info.description,
+					printInfo: {
+						connect: {
+							id: info.printInfoId
+						}
+					},
+					status: "OPEN",
+
 				}
 			})
 

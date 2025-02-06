@@ -4,28 +4,29 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useForm } from "react-hook-form"
 import { useContext, useEffect, useRef, useState } from 'react'
 import { toast, Toaster } from "sonner"
 import { motion, AnimatePresence, useTime, useTransform } from "framer-motion"
 import { Textarea } from "@/components/ui/textarea"
 import STLViewer from "@/components/STLViewer"
-import { fileURLToPath } from "url"
 import { FileContext } from "@/contexts/FileContext/context"
-
+import { Colors, Materials, PrintInfo, Ticket } from "@prisma/client"
+import Counter, { AnimatedInput } from "@/components/Counter"
+import { LucideMinusCircle, LucidePlusCircle, PlusCircleIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 type FormSchema = {
-	material: "PLA" | "ABS"
-	tool_temperature: number
-	base_temperature: number
-	supports: boolean
+	color: Colors
+	material: Materials
+	size: [number, number, number]
+	comments: string | null
 }
 
 const defaultValues: FormSchema = {
+	color: "WHITE",
 	material: "PLA",
-	tool_temperature: 200,
-	base_temperature: 60,
-	supports: true
+	size: [10, 10, 10],
+	comments: null
 }
 
 
@@ -54,15 +55,16 @@ const valueVariants = {
 }
 
 export default function DetailsPage() {
-	const [material, setMaterial] = useState<string>("")
-	const [extruderTemp, setExtruderTemp] = useState<string>("")
-	const [baseTemp, setBaseTemp] = useState<string>("")
-	const [supports, setSupports] = useState(false)
-	const [comments, setComments] = useState<string>("")
+	const [color, setColor] = useState<Colors | null>();
+	const [material, setMaterial] = useState<Materials | null>();
+	const [size, setSize] = useState<[number, number, number] | null>([0, 0, 0]);
+	const [comments, setComments] = useState<string | null>();
 
 	const [isHovered, setIsHovered] = useState<boolean>(false)
 
-	const { previewUrl } = useContext(FileContext)
+	const { previewUrl, file } = useContext(FileContext)
+
+	const router = useRouter()
 
 	// gradient animations
 	const time = useTime()
@@ -92,7 +94,17 @@ export default function DetailsPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		if (!material || !extruderTemp || !baseTemp || supports === undefined) {
+		if (!file || previewUrl == '') {
+			toast("Erro!", {
+				description: "Arquivo não encontrado, volte para a página anterior e adicione o arquivo que deseja imprimir",
+				action: {
+					label: "Adicionar arquivo",
+					onClick: () => { router.replace('/upload') }
+				},
+			})
+			return
+		}
+		if (!material || !color || !size || size.some(e => e === 0)) {
 			toast("Erro!", {
 				description: "Por favor, preencha todos os campos, ou clique no botão para preencher automaticamente",
 				action: {
@@ -102,26 +114,54 @@ export default function DetailsPage() {
 			})
 			return
 		}
+
+		const printInfo: PrintInfo = {
+			color: color,
+			material: material,
+			sizeX: size[0],
+			sizeY: size[1],
+			sizeZ: size[2],
+		}
+
+		var print_info_id = ""
+		try {
+			const r = await fetch('/api/print_info',
+				{
+					method: "POST",
+					body: JSON.stringify(printInfo)
+				}
+			)
+			const r_json = await r.json()
+			print_info_id = r_json.message
+		} catch (error) {
+			throw Error(error)
+		}
+
+		const new_ticket: Ticket = {
+			title: file.name,
+			description: comments || "no description provided",
+			printInfoId: print_info_id || '',
+			status: "OPEN",
+			authorId: 'dev'
+		}
+
+		// needs refactoring
 		const return_data = await fetch("http://localhost:3000/api/tickets", {
 			method: "POST",
-			body: JSON.stringify({
-				material: material,
-				tool_temperature: extruderTemp,
-				base_temperature: baseTemp,
-			}),
+			body: JSON.stringify(new_ticket),
 		})
-		console.log(return_data)
 		const d_json = await return_data.json()
 		console.log(d_json)
-		toast(
-			"Details successfully sent!")
+
+		// add a popup on middle of screen showing created ticket
+		// or a OK confirmation message
+		toast("Details successfully sent!")
 	}
 
 	const _autofill_settings = () => {
-		setMaterial(defaultValues.material)
-		setTimeout(() => { setExtruderTemp(defaultValues.tool_temperature.toString()) }, 500)
-		setTimeout(() => { setBaseTemp(defaultValues.base_temperature.toString()) }, 800)
-		setTimeout(() => { setSupports(defaultValues.supports) }, 1000)
+		setColor(defaultValues.color)
+		setTimeout(() => { setMaterial(defaultValues.material) }, 500)
+		setTimeout(() => { setSize(defaultValues.size) }, 800)
 		return
 	}
 
@@ -149,6 +189,31 @@ export default function DetailsPage() {
 
 				<form className="flex flex-col items-center justify-center gap-6 w-4/5 p-4">
 					<div className="flex flex-col items-center gap-4 w-full">
+						<Select value={color} onValueChange={setColor}>
+							<SelectTrigger className="w-3/5">
+								<AnimatePresence mode="wait">
+									<motion.div
+										key={color || "placeholder"}
+										variants={valueVariants}
+										initial="initial"
+										animate="animate"
+										exit="exit"
+									>
+										<SelectValue placeholder="Cor" />
+									</motion.div>
+								</AnimatePresence>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="WHITE">Branco</SelectItem>
+								<SelectItem value="BLACK">Preto</SelectItem>
+								<SelectItem value="GREEN">Verde</SelectItem>
+								<SelectItem value="BLUE">Azul</SelectItem>
+								<SelectItem value="PURPLE">Roxo</SelectItem>
+								<SelectItem value="RED">Vermelho</SelectItem>
+								<SelectItem value="PINK">Rosa</SelectItem>
+							</SelectContent>
+						</Select>
+
 						<Select value={material} onValueChange={setMaterial}>
 							<SelectTrigger className="w-3/5">
 								<AnimatePresence mode="wait">
@@ -159,7 +224,7 @@ export default function DetailsPage() {
 										animate="animate"
 										exit="exit"
 									>
-										<SelectValue placeholder="Material da impressão" />
+										<SelectValue placeholder="Material" />
 									</motion.div>
 								</AnimatePresence>
 							</SelectTrigger>
@@ -168,55 +233,73 @@ export default function DetailsPage() {
 								<SelectItem value="ABS">ABS</SelectItem>
 							</SelectContent>
 						</Select>
-						<Select value={extruderTemp} onValueChange={setExtruderTemp}>
-							<SelectTrigger className="w-3/5">
-								<AnimatePresence mode="wait">
-									<motion.div
-										key={extruderTemp || "placeholder"}
-										variants={valueVariants}
-										initial="initial"
-										animate="animate"
-										exit="exit"
-									>
-										<SelectValue placeholder="Temperatura do extrusor" />
-									</motion.div>
-								</AnimatePresence>
-							</SelectTrigger>
 
-							<SelectContent>
-								<SelectItem value="200">200</SelectItem>
-								<SelectItem value="220">220</SelectItem>
-							</SelectContent>
-						</Select>
-
-						<Select value={baseTemp} onValueChange={setBaseTemp}>
-							<SelectTrigger className="w-3/5">
-								<AnimatePresence mode="wait">
-									<motion.div
-										key={baseTemp || "placeholder"}
-										variants={valueVariants}
-										initial="initial"
-										animate="animate"
-										exit="exit"
-									>
-										<SelectValue placeholder="Temperatura da base" />
-									</motion.div>
-								</AnimatePresence>
-							</SelectTrigger>
-
-							<SelectContent>
-								<SelectItem value="60">60</SelectItem>
-								<SelectItem value="100">100</SelectItem>
-							</SelectContent>
-						</Select>
-
-						<div className="flex items-center space-x-2">
-							<Checkbox
-								checked={supports}
-								onCheckedChange={(checked) => setSupports(checked as boolean)}
+						<div className="flex gap-2 w-3/5">
+							{/* implement apple numbers animation  */}
+							<Input
+								type="number"
+								placeholder="Largura"
+								value={size?.[0]}
+								onChange={(e) => setSize(prev => [Number(e.target.value), prev?.[1] ?? 0, prev?.[2] ?? 0])}
 							/>
-							<Label className="text-md font-normal">Suportes?</Label>
+							<Input
+								type="number"
+								placeholder="Altura"
+								value={size?.[1]}
+								onChange={(e) => setSize(prev => [prev?.[0] ?? 0, Number(e.target.value), prev?.[2] ?? 0])}
+							/>
+							<Input
+								type="number"
+								placeholder="Profundidade"
+								value={size?.[2]}
+								onChange={(e) => setSize(prev => [prev?.[0] ?? 0, prev?.[1] ?? 0, Number(e.target.value)])}
+							/>
 						</div>
+
+						{/* <div className="flex flex-col items-center justify-center">
+							<div className="flex flex-col gap-4">
+								<div className="flex justify-around items-center gap-2">
+									<LucideMinusCircle
+										className="cursor-pointer"
+										onClick={() => setSize(prev => [Math.max(0, (prev?.[0] ?? 0) - 1), prev?.[1] ?? 0, prev?.[2] ?? 0])}
+									/>
+									<Counter value={size?.[0] ?? 0} />
+									<LucidePlusCircle
+										className="cursor-pointer"
+										onClick={() => setSize(prev => [(prev?.[0] ?? 0) + 1, prev?.[1] ?? 0, prev?.[2] ?? 0])}
+									/>
+								</div>
+								<div className="flex justify-evenly items-center gap-2">
+									<LucideMinusCircle
+										className="cursor-pointer"
+										onClick={() => setSize(prev => [prev?.[0] ?? 0, Math.max(0, (prev?.[1] ?? 0) - 1), prev?.[2] ?? 0])}
+									/>
+									<Counter value={size?.[1] ?? 0} />
+									<LucidePlusCircle
+										className="cursor-pointer"
+										onClick={() => setSize(prev => [prev?.[0] ?? 0, (prev?.[1] ?? 0) + 1, prev?.[2] ?? 0])}
+									/>
+								</div>
+								<div className="flex justify-evenly items-center gap-2">
+									<LucideMinusCircle
+										className="cursor-pointer"
+										onClick={() => setSize(prev => [prev?.[0] ?? 0, prev?.[1] ?? 0, Math.max(0, (prev?.[2] ?? 0) - 1)])}
+									/>
+									<Counter value={size?.[2] ?? 0} />
+									<LucidePlusCircle
+										className="cursor-pointer"
+										onClick={() => setSize(prev => [prev?.[0] ?? 0, prev?.[1] ?? 0, (prev?.[2] ?? 0) + 1])}
+									/>
+								</div>
+							</div>
+						</div>*/}
+
+						<Textarea
+							className="w-3/5"
+							placeholder="Comentários adicionais"
+							value={comments ?? ''}
+							onChange={(e) => setComments(e.target.value)}
+						/>
 					</div>
 
 					<div className="relative flex items-center justify-center">
@@ -237,14 +320,14 @@ export default function DetailsPage() {
 							onClick={handleSubmit}
 							onMouseEnter={() => setIsHovered(true)}
 							onMouseLeave={() => setIsHovered(false)}
-							className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 z-10"
+							className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-slate-800 z-10"
 						>
 							Confirmar
 						</Button>
 					</div>
 				</form>
-			</div>
+			</div >
 			<Toaster />
-		</div>
+		</div >
 	)
 }

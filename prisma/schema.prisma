@@ -16,14 +16,42 @@ model User {
 }
 
 model Ticket {
-    id          String         @id @default(uuid())
+    id          String       @id @default(uuid())
     title       String
-    description String
-    created_at  DateTime       @default(now())
-    status      TicketStatus   @default(OPEN)
-    priority    TicketPriority
+    description String?
+    created_at  DateTime     @default(now())
+    status      TicketStatus @default(OPEN)
     authorId    String
-    User        User?          @relation(fields: [authorId], references: [id])
+    User        User?        @relation(fields: [authorId], references: [id])
+    printInfo   PrintInfo    @relation(fields: [printInfoId], references: [id])
+    printInfoId String       @unique
+}
+
+model PrintInfo {
+    id       String    @id @default(uuid())
+    color    Colors    @default(WHITE)
+    sizeX    Int
+    sizeY    Int
+    sizeZ    Int
+    material Materials @default(PLA)
+    comments String?
+    Ticket   Ticket?
+}
+
+enum Materials {
+    PLA
+    ABS
+}
+
+enum Colors {
+    WHITE
+    BLACK
+    YELLOW
+    GREEN
+    BLUE
+    PURPLE
+    RED
+    PINK
 }
 
 enum TicketStatus {
@@ -31,10 +59,4 @@ enum TicketStatus {
     CLOSED
     IN_PROGRESS
     DENIED
-}
-
-enum TicketPriority{
-	HIGH
-	MEDIUM
-	LOW
 }
