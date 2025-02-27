@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence, useTransform, useTime } from 'framer-motion'
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,10 @@ import { Separator } from '@/components/ui/separator'
 import { Rotate3D, Sparkles } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileContext } from '@/contexts/FileContext/context'
+import UserCard from '@/components/user-card'
+import supabase from '@/lib/supabase'
+import { User } from '@supabase/supabase-js'
+import { useRainbowBackground } from '@/components/rainbow-bg'
 
 const variants = {
 	enter: {
@@ -28,6 +32,33 @@ const variants = {
 
 
 export default function UploadPage() {
+	const handleAI = (e) => {
+		e.preventDefault()
+		toast("Essa feature ainda não está completa!", {
+			description: 'Aguarde nossa próxima atualização para poder pedir modelos'
+		})
+	}
+
+
+	const [user, setUser] = useState<User | null>(null)
+	useEffect(() => {
+		const check_cookie = async () => {
+			const { data: { session } } = await supabase.auth.getSession()
+			if (session) {
+				setUser(session.user)
+				if (session.user.user_metadata) {
+					toast("Bem vindo " + session.user.user_metadata.full_name.split(' ')[0], {
+						description: 'Bem vindo ao Open3D!',
+						duration: 1000
+					})
+				}
+				// console.log(user.aud)
+			}
+		}
+		check_cookie()
+	}, [])
+
+
 	// for the cool ai rainbow animation
 	const [isTyping, setIsTyping] = useState(false)
 	// optimize this ^
@@ -38,14 +69,7 @@ export default function UploadPage() {
 	// file context
 	const { setFile, setPreviewUrl, file, previewUrl } = useContext(FileContext)
 
-	const time = useTime()
-	const rotate_bg = useTransform(time, [0, 3000], [0, 360], {
-		clamp: false
-	})
-
-	const rotating_bg = useTransform(rotate_bg, (r) => {
-		return `conic-gradient(from ${r}deg, #ff4545, #00ff99, #006aff, #ff0095, #ff4545)`
-	})
+	const rotating_bg = useRainbowBackground()
 
 	const handleSonner = (desc: string) => {
 		toast("Arquivo recebido", {
@@ -64,8 +88,6 @@ export default function UploadPage() {
 			// creates the file url for showing the model
 			handleURLCreation(event.target.files[0])
 			handleSonner("Arquivo enviado com sucesso")
-			//TODO: change later
-			setTimeout(() => setPreview(true), 750)
 		}
 	}
 
@@ -87,7 +109,10 @@ export default function UploadPage() {
 	}
 
 	return (
-		<div className='flex flex-row max-md:flex-col items-center justify-evenly gap-2 w-screen h-screen'>
+		<div className='flex flex-row max-md:flex-col items-center justify-evenly gap-4 w-screen h-screen'>
+			<div className='absolute top-4 left-4 w-1/6 '>
+				<UserCard userObj={user} />
+			</div>
 			<div className='flex flex-col items-center justify-center gap-4 w-1/2 h-full max-md:h-1/2'>
 				<AnimatePresence >
 					<div className='flex flex-col justify-start gap-1'>
@@ -142,14 +167,12 @@ export default function UploadPage() {
 			{/* helpdesk */}
 			<div className='flex flex-col items-center justify-center gap-4 w-1/2 max-md:h-1/2 h-full'>
 				<div className='flex flex-col justify-start gap-1'>
-					<h1 className='text-3xl font-bold'>Decreva seu modelo </h1>
-					<p className='text-md  text-slate-700'>Um de nossos profissionais entrará em contato para uma cotação</p>
+					<h1 className='text-3xl font-bold text-center'>Decreva seu modelo </h1>
+					<p className='text-md  text-slate-700 text-center'>Um de nossos designers entrará em contato para uma cotação</p>
 				</div>
-				<form className='h-1/5 flex flex-col items-center justify-center'>
+				<form className='h-1/5 w-full flex flex-col items-center justify-center'>
 					{/* fix later */}
-					<div className='flex gap-2'>
-
-
+					<div className='flex justify-center items-center gap-2'>
 						<div className='flex gap-2 relative items-center justify-center'>
 							<AnimatePresence mode="wait">
 								{isTyping && (
@@ -183,7 +206,7 @@ export default function UploadPage() {
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger>
-									<Button>
+									<Button onClick={handleAI}>
 										<Sparkles className="animate-colors " />
 									</Button>
 								</TooltipTrigger>

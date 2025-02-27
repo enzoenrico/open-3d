@@ -40,6 +40,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ArrowDownIcon, Loader } from 'lucide-react';
 import { Ticket, TicketStatus } from '@prisma/client';
 import { toast, Toaster } from 'sonner';
+import { Separator } from '@/components/ui/separator';
 
 // Mock data for tickets and graph
 const mockTicketGraphData = [
@@ -90,7 +91,7 @@ const Dashboard = () => {
 	const statusVariants: Record<TicketStatus, string> = {
 		"OPEN": "default",
 		"IN_PROGRESS": "secondary",
-		"RESOLVED": "success",
+		"DENIED": "destructive",
 		"CLOSED": "outline"
 	};
 
@@ -113,37 +114,43 @@ const Dashboard = () => {
 	return (
 		<div className="flex min-h-screen bg-gray-50">
 			{/* Sidebar with Ticket Table */}
-			<div className="w-1/3 border-r overflow-y-hidden h-screen p-6 bg-white">
+
+			<div className="w-1/3  border-r overflow-y-hidden h-screen p-6 bg-white">
 				<div className="flex justify-between items-center mb-4 ">
 					<h2 className="text-xl font-bold text-gray-800">Tickets</h2>
 				</div>
+
 				<div className="h-full overflow-y-scroll">
 					{/* change to standalone component */}
-					<div className='space-y-2'>
+					<div className='space-y-2 p-2'>
 						{!isLoading || tickets.length >= 1 ?
-							(tickets.map((this_ticket) => (
-								<Card
-									key={this_ticket.id}
-									className={`cursor-pointer ${selectedTicket?.id === this_ticket.id ? 'border-primary' : ''}`}
-									onClick={() => setSelectedTicket(this_ticket)}
-								>
-									<CardHeader className="p-4 pb-2">
-										<div className="flex justify-between items-center">
-											<span className="font-semibold">{this_ticket.title}</span>
-										</div>
-									</CardHeader>
-									<CardContent className="p-4 pt-0">
-										<p className="text-sm text-gray-600 max-w-full text-ellipsis overflow-hidden">{this_ticket.description}</p>
-										<div className="flex justify-between items-center mt-2">
-											<Badge variant={statusVariants[this_ticket.status]}>
-												{this_ticket.status}
-											</Badge>
-											<span className="text-xs text-gray-500">{this_ticket.created}</span>
-										</div>
-									</CardContent>
-								</Card>
-
-
+							(tickets.map((this_ticket, index) => (
+								<div className='w-full flex flex-col gap-2'>
+									<Card
+										key={this_ticket.id}
+										className={`cursor-pointer ${selectedTicket?.id === this_ticket.id ? 'border-primary' : ''}`}
+										onClick={() => setSelectedTicket(this_ticket)}
+									>
+										<CardHeader className="p-4 pb-2">
+											<div className="flex justify-between items-center">
+												<span className="font-semibold">{this_ticket.title}</span>
+											</div>
+										</CardHeader>
+										<CardContent className="p-4 pt-0">
+											<p className="text-sm text-gray-600 max-w-full text-ellipsis overflow-hidden">{this_ticket.description}</p>
+											<div className="flex justify-between items-center mt-2">
+												<Badge variant={statusVariants[this_ticket.status]}>
+													{this_ticket.status}
+												</Badge>
+												<span className="text-xs text-gray-500">{this_ticket.created_at}</span>
+											</div>
+										</CardContent>
+									</Card>
+									{index == tickets.length - 1 ?
+										null
+										: (<Separator className='w-full' />)
+									}
+								</div>
 							)))
 							: (
 								<div className='h-full w-full flex items-center justify-center'>
@@ -294,7 +301,7 @@ const Dashboard = () => {
 												<SelectContent>
 													<SelectItem value="OPEN">Open</SelectItem>
 													<SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-													<SelectItem value="RESOLVED">Resolved</SelectItem>
+													<SelectItem value="DENIED">Denied</SelectItem>
 													<SelectItem value="CLOSED">Closed</SelectItem>
 												</SelectContent>
 											</Select>
@@ -316,7 +323,7 @@ const Dashboard = () => {
 					</div>
 				)}
 			</div>
-			<Toaster />
+			<Toaster theme='dark' />
 		</div >
 	);
 };

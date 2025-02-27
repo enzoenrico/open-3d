@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import STLViewer from "@/components/STLViewer"
 import { FileContext } from "@/contexts/FileContext/context"
 import { Colors, Materials, PrintInfo, Ticket } from "@prisma/client"
-import Counter, { AnimatedInput } from "@/components/Counter"
+import Counter from "@/components/Counter"
 import { LucideMinusCircle, LucidePlusCircle, PlusCircleIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -86,11 +86,10 @@ export default function DetailsPage() {
 			return
 		}
 		// setFileUrl(url)
-
 		toast("Arquivo carregado com sucesso!", {
 			description: "╰(*°▽°*)╯"
 		})
-	}, [])
+	}, [previewUrl])
 	const create_printInfo_entry = async () => {
 		const printInfo: PrintInfo = {
 			color: color,
@@ -116,7 +115,7 @@ export default function DetailsPage() {
 		return print_info_id
 	}
 
-	const create_file_entry = async() => {
+	const create_file_entry = async () => {
 		return
 	}
 
@@ -146,12 +145,12 @@ export default function DetailsPage() {
 
 		const p_id = await create_printInfo_entry()
 
-		const new_ticket: Ticket = {
+		const new_ticket: Ticket | Record<string, any> = {
 			title: file.name,
 			description: comments || "no description provided",
 			printInfoId: p_id || '',
 			status: "OPEN",
-			authorId: 'dev'
+			authorId: 'dev',
 		}
 
 		// needs refactoring
@@ -336,7 +335,7 @@ export default function DetailsPage() {
 					</div>
 				</form>
 			</div >
-			<Toaster />
+			<Toaster theme="dark" />
 		</div >
 	)
 }

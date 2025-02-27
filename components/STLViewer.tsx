@@ -39,7 +39,7 @@ const Model = ({ fileUrl }: { fileUrl: string }) => {
 		loader.load(fileUrl, geo => {
 			setGeometry(geo)
 		})
-	}, [])
+	}, [fileUrl])
 	const groupRef = useRef<Group>(null!);
 
 	useFrame((state, delta) => {
